@@ -1,87 +1,97 @@
 import 'package:flutter/material.dart';
+import '../viewmodels/auth_viewmodel.dart';
+import '../viewmodels/user_viewmodel.dart';
 
 class CustomMenuView extends StatelessWidget {
   const CustomMenuView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Obtener rol del usuario actual desde Firebase/SharedPreferences
-    final bool isAdmin = true; // Cambiar según el usuario logueado
+    final UserViewModel userViewModel = UserViewModel();
+    final AuthViewModel authViewModel = AuthViewModel();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Menú')),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          const Text(
-            'Opciones Disponibles',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          _buildMenuCard(
-            icon: Icons.home,
-            title: 'Inicio',
-            subtitle: 'Pantalla principal',
-            onTap: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/welcome',
-                (route) => false,
-              );
-            },
-          ),
-          _buildMenuCard(
-            icon: Icons.person,
-            title: 'Mi Perfil',
-            subtitle: 'Ver y editar información personal',
-            onTap: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-          ),
-          if (isAdmin) ...[
-            const SizedBox(height: 16),
-            const Text(
-              'Opciones de Administrador',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
+      body: FutureBuilder<bool>(
+        future: userViewModel.isAdmin(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final bool isAdmin = snapshot.data ?? false;
+          return ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              const Text(
+                'Opciones Disponibles',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 8),
-            _buildMenuCard(
-              icon: Icons.group,
-              title: 'Gestión de Usuarios',
-              subtitle: 'Administrar todos los usuarios',
-              onTap: () {
-                Navigator.pushNamed(context, '/admin-users');
-              },
-              isAdminOption: true,
-            ),
-            _buildMenuCard(
-              icon: Icons.settings,
-              title: 'Configuración del Sistema',
-              subtitle: 'Ajustes avanzados',
-              onTap: () {
-                // TODO: Implementar vista de configuración
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Función en desarrollo')),
-                );
-              },
-              isAdminOption: true,
-            ),
-          ],
-          const SizedBox(height: 24),
-          _buildMenuCard(
-            icon: Icons.logout,
-            title: 'Cerrar Sesión',
-            subtitle: 'Salir de la aplicación',
-            onTap: () {
-              _showLogoutDialog(context);
-            },
-            isDanger: true,
-          ),
-        ],
+              const SizedBox(height: 16),
+              _buildMenuCard(
+                icon: Icons.home,
+                title: 'Inicio',
+                subtitle: 'Pantalla principal',
+                onTap: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/welcome',
+                        (route) => false,
+                  );
+                },
+              ),
+              _buildMenuCard(
+                icon: Icons.person,
+                title: 'Mi Perfil',
+                subtitle: 'Ver y editar información personal',
+                onTap: () {
+                  Navigator.pushNamed(context, '/profile');
+                },
+              ),
+              if (isAdmin) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Opciones de Administrador',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildMenuCard(
+                  icon: Icons.group,
+                  title: 'Gestión de Usuarios',
+                  subtitle: 'Administrar todos los usuarios',
+                  onTap: () {
+                    Navigator.pushNamed(context, '/admin-users');
+                  },
+                  isAdminOption: true,
+                ),
+                _buildMenuCard(
+                  icon: Icons.settings,
+                  title: 'Configuración del Sistema',
+                  subtitle: 'Ajustes avanzados',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Función en desarrollo')),
+                    );
+                  },
+                  isAdminOption: true,
+                ),
+              ],
+              const SizedBox(height: 24),
+              _buildMenuCard(
+                icon: Icons.logout,
+                title: 'Cerrar Sesión',
+                subtitle: 'Salir de la aplicación',
+                onTap: () {
+                  _showLogoutDialog(context, authViewModel);
+                },
+                isDanger: true,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -119,7 +129,7 @@ class CustomMenuView extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, AuthViewModel authViewModel) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -134,13 +144,26 @@ class CustomMenuView extends StatelessWidget {
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
+              onPressed: () async {
+                try {
+                  await authViewModel.signOut();
+                  Navigator.of(context).pop();
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                        (route) => false,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Sesión cerrada exitosamente'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text('Cerrar Sesión'),

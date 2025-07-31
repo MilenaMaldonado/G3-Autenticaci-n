@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -11,6 +12,8 @@ class _LoginViewState extends State<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final AuthViewModel _authViewModel = AuthViewModel();
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +37,9 @@ class _LoginViewState extends State<LoginView> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese su email';
                   }
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    return 'Por favor ingrese un email válido';
+                  }
                   return null;
                 },
               ),
@@ -49,15 +55,33 @@ class _LoginViewState extends State<LoginView> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese su contraseña';
                   }
+                  if (value.length < 6) {
+                    return 'La contraseña debe tener al menos 6 caracteres';
+                  }
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              if (_errorMessage != null)
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    // Navegación temporal para ver las vistas
-                    Navigator.pushReplacementNamed(context, '/welcome');
+                    try {
+                      await _authViewModel.signIn(
+                        _emailController.text.trim(),
+                        _passwordController.text.trim(),
+                      );
+                      Navigator.pushReplacementNamed(context, '/welcome');
+                    } catch (e) {
+                      setState(() {
+                        _errorMessage = e.toString();
+                      });
+                    }
                   }
                 },
                 child: const Text('Iniciar Sesión'),

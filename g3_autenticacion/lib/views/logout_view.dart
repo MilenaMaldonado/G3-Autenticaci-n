@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class LogoutView extends StatelessWidget {
   const LogoutView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final AuthViewModel authViewModel = AuthViewModel();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Cerrar Sesión')),
       body: Center(
@@ -44,7 +47,7 @@ class LogoutView extends StatelessWidget {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      _performLogout(context);
+                      _performLogout(context, authViewModel);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
@@ -63,7 +66,7 @@ class LogoutView extends StatelessWidget {
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     '/welcome',
-                    (route) => false,
+                        (route) => false,
                   );
                 },
                 child: const Text('Volver al inicio'),
@@ -75,10 +78,7 @@ class LogoutView extends StatelessWidget {
     );
   }
 
-  void _performLogout(BuildContext context) {
-    // TODO: Implementar lógica de logout con Firebase
-
-    // Mostrar un diálogo de confirmación
+  void _performLogout(BuildContext context, AuthViewModel authViewModel) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -95,19 +95,19 @@ class LogoutView extends StatelessWidget {
       },
     );
 
-    // Simular proceso de logout
-    Future.delayed(const Duration(seconds: 2), () {
+    authViewModel.signOut().then((_) {
       Navigator.of(context).pop(); // Cerrar diálogo de progreso
-
-      // Navegar al login y limpiar el stack de navegación
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-
-      // Mostrar mensaje de confirmación
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Sesión cerrada exitosamente'),
           backgroundColor: Colors.green,
         ),
+      );
+    }).catchError((e) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     });
   }

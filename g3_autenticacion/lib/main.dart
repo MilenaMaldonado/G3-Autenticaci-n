@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_core/firebase_core.dart'; // Comentado temporalmente
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'views/views.dart';
 
-void main() {
-  // Comentado temporalmente para ver las vistas sin Firebase
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 

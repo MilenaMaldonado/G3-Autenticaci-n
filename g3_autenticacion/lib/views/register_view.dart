@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -14,6 +15,8 @@ class _RegisterViewState extends State<RegisterView> {
   final _displayNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final AuthViewModel _authViewModel = AuthViewModel();
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +53,9 @@ class _RegisterViewState extends State<RegisterView> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingrese su email';
+                    }
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      return 'Por favor ingrese un email válido';
                     }
                     return null;
                   },
@@ -96,12 +102,31 @@ class _RegisterViewState extends State<RegisterView> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                if (_errorMessage != null)
+                  Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                const SizedBox(height: 8),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Navegación temporal para ver las vistas
-                      Navigator.pushReplacementNamed(context, '/welcome');
+                      try {
+                        await _authViewModel.register(
+                          email: _emailController.text.trim(),
+                          password: _passwordController.text.trim(),
+                          displayName: _displayNameController.text.trim(),
+                          phoneNumber: _phoneController.text.isEmpty
+                              ? null
+                              : _phoneController.text.trim(),
+                        );
+                        Navigator.pushReplacementNamed(context, '/welcome');
+                      } catch (e) {
+                        setState(() {
+                          _errorMessage = e.toString();
+                        });
+                      }
                     }
                   },
                   child: const Text('Registrarse'),

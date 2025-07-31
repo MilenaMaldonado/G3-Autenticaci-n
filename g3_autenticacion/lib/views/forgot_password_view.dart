@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class ForgotPasswordView extends StatefulWidget {
   const ForgotPasswordView({Key? key}) : super(key: key);
@@ -10,7 +11,9 @@ class ForgotPasswordView extends StatefulWidget {
 class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final AuthViewModel _authViewModel = AuthViewModel();
   bool _isEmailSent = false;
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -54,20 +57,32 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               if (value == null || value.isEmpty) {
                 return 'Por favor ingrese su email';
               }
-              if (!value.contains('@')) {
+              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                 return 'Por favor ingrese un email válido';
               }
               return null;
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          if (_errorMessage != null)
+            Text(
+              _errorMessage!,
+              style: const TextStyle(color: Colors.red),
+            ),
+          const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                // TODO: Implementar lógica de recuperación
-                setState(() {
-                  _isEmailSent = true;
-                });
+                try {
+                  await _authViewModel.sendPasswordResetEmail(_emailController.text.trim());
+                  setState(() {
+                    _isEmailSent = true;
+                  });
+                } catch (e) {
+                  setState(() {
+                    _errorMessage = e.toString();
+                  });
+                }
               }
             },
             child: const Text('Enviar Email de Recuperación'),
@@ -112,6 +127,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           onPressed: () {
             setState(() {
               _isEmailSent = false;
+              _errorMessage = null;
             });
           },
           child: const Text('Enviar otro email'),

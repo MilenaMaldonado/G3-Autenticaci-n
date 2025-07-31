@@ -46,4 +46,26 @@ class UserModel {
           : null,
     );
   }
+
+  UserModel copyWith({
+    String? uid,
+    String? email,
+    String? displayName,
+    String? role,
+    bool? isEmailVerified,
+    String? phoneNumber,
+    DateTime? createdAt,
+    DateTime? lastLogin,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      role: role ?? this.role,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      createdAt: createdAt ?? this.createdAt,
+      lastLogin: lastLogin ?? this.lastLogin,
+    );
+  }
 }
