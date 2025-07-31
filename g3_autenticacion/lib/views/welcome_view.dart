@@ -370,7 +370,6 @@ class WelcomeView extends StatelessWidget {
                 );
               },
             ),
-<<<<<<< HEAD
 
             // Menu Items
             Expanded(
@@ -419,43 +418,6 @@ class WelcomeView extends StatelessWidget {
                   ],
                 ),
               ),
-=======
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Perfil'),
-              onTap: () {
-                Navigator.pushNamed(context, '/profile');
-              },
-            ),
-            StreamBuilder<UserModel?>(
-              stream: userViewModel.currentUserStream,
-              builder: (context, snapshot) {
-                final user = snapshot.data;
-                String menuTitle =
-                    (user != null && user.role == 'usuario') ? 'Más opciones' : 'Menú Personalizado';
-                return ListTile(
-                  leading: const Icon(Icons.menu),
-                  title: Text(menuTitle),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/custom-menu');
-                  },
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Cerrar Sesión'),
-              onTap: () {
-                Navigator.pushNamed(context, '/logout');
-              },
->>>>>>> 026c20ce63745f3beef0b2b30e3c876d42c21367
             ),
           ],
         ),
