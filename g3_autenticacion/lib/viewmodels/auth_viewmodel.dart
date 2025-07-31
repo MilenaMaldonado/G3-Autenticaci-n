@@ -3,6 +3,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/user_model.dart';
 
 class AuthViewModel {
+  // Send email verification to current user
+  Future<void> sendEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user != null && !user.emailVerified) {
+      await user.sendEmailVerification();
+    }
+  }
+
+  // Refresh and return email verification status
+  Future<bool> refreshEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.reload();
+      final isVerified = _auth.currentUser!.emailVerified;
+      // Actualizar el campo en Firestore si está verificado
+      if (isVerified) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'isEmailVerified': true,
+        });
+      }
+      return isVerified;
+    }
+    return false;
+  }
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 

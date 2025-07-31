@@ -141,11 +141,50 @@ class _ProfileViewState extends State<ProfileView> {
                             leading: const Icon(Icons.verified),
                             title: const Text('Email Verificado'),
                             subtitle: Text(user.isEmailVerified ? 'Sí' : 'No'),
-                            trailing: Icon(
-                              user.isEmailVerified
-                                  ? Icons.check_circle
-                                  : Icons.warning,
-                              color: user.isEmailVerified ? Colors.green : Colors.orange,
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  user.isEmailVerified
+                                      ? Icons.check_circle
+                                      : Icons.warning,
+                                  color: user.isEmailVerified ? Colors.green : Colors.orange,
+                                ),
+                                if (!user.isEmailVerified)
+                                  IconButton(
+                                    icon: const Icon(Icons.email),
+                                    tooltip: 'Enviar verificación',
+                                    onPressed: () async {
+                                      await _authViewModel.sendEmailVerification();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Correo de verificación enviado'),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                IconButton(
+                                  icon: const Icon(Icons.refresh),
+                                  tooltip: 'Refrescar estado',
+                                  onPressed: () async {
+                                    final verified = await _authViewModel.refreshEmailVerification();
+                                    if (verified) {
+                                      setState(() {});
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('¡Email verificado!'),
+                                        ),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('El email aún no está verificado'),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ],

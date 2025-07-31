@@ -17,6 +17,7 @@ class _RegisterViewState extends State<RegisterView> {
   final _formKey = GlobalKey<FormState>();
   final AuthViewModel _authViewModel = AuthViewModel();
   String? _errorMessage;
+  String _selectedRole = 'usuario'; // Nuevo campo para el rol
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +71,30 @@ class _RegisterViewState extends State<RegisterView> {
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
+                // Campo para seleccionar el rol
+                DropdownButtonFormField<String>(
+                  value: _selectedRole,
+                  decoration: const InputDecoration(
+                    labelText: 'Rol',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'usuario',
+                      child: Text('Usuario'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'admin',
+                      child: Text('Administrador'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   decoration: const InputDecoration(
@@ -113,7 +138,7 @@ class _RegisterViewState extends State<RegisterView> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       try {
-                        await _authViewModel.register(
+                        final userModel = await _authViewModel.register(
                           email: _emailController.text.trim(),
                           password: _passwordController.text.trim(),
                           displayName: _displayNameController.text.trim(),
@@ -121,6 +146,11 @@ class _RegisterViewState extends State<RegisterView> {
                               ? null
                               : _phoneController.text.trim(),
                         );
+                        // Si el rol seleccionado es diferente al por defecto, actualizarlo
+                        if (userModel != null && userModel.role != _selectedRole) {
+                          final updatedUser = userModel.copyWith(role: _selectedRole);
+                          await _authViewModel.updateUser(updatedUser);
+                        }
                         Navigator.pushReplacementNamed(context, '/welcome');
                       } catch (e) {
                         setState(() {
