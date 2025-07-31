@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "984562508992",
+    "project_id": "authproj-24970",
+    "storage_bucket": "authproj-24970.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:984562508992:android:dfac02608ac30a9f92f925",
+        "android_client_info": {
+          "package_name": "com.example.g3_autenticacion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbd2pduc5VRQnEdzEjEukUWpNBKesceuU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
