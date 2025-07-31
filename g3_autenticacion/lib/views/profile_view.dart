@@ -11,6 +11,12 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
+  @override
+  void initState() {
+    super.initState();
+    // Actualizar estado de verificación al abrir la pantalla
+    _authViewModel.refreshEmailVerification();
+  }
   final _displayNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();

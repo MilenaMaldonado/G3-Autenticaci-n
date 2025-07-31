@@ -82,11 +82,19 @@ class WelcomeView extends StatelessWidget {
                 Navigator.pushNamed(context, '/profile');
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.menu),
-              title: const Text('Menú Personalizado'),
-              onTap: () {
-                Navigator.pushNamed(context, '/custom-menu');
+            StreamBuilder<UserModel?>(
+              stream: userViewModel.currentUserStream,
+              builder: (context, snapshot) {
+                final user = snapshot.data;
+                String menuTitle =
+                    (user != null && user.role == 'usuario') ? 'Más opciones' : 'Menú Personalizado';
+                return ListTile(
+                  leading: const Icon(Icons.menu),
+                  title: Text(menuTitle),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/custom-menu');
+                  },
+                );
               },
             ),
             ListTile(
