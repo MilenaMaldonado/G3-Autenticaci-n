@@ -15,99 +15,300 @@ class _AdminUsersViewState extends State<AdminUsersView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestión de Usuarios'),
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
-      ),
-      body: StreamBuilder<List<UserModel>>(
-        stream: _authViewModel.getAllUsers(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No hay usuarios registrados'));
-          }
-          final users = snapshot.data!;
-          return ListView.builder(
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              final user = users[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: user.role == 'admin' ? Colors.red : Colors.blue,
-                    child: Icon(
-                      user.role == 'admin' ? Icons.admin_panel_settings : Icons.person,
-                      color: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFe53e3e), Color(0xFFc53030)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom App Bar
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Gestión de Usuarios',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.admin_panel_settings,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
                     ),
                   ),
-                  title: Text(user.displayName ?? 'Sin nombre'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(user.email),
-                      Row(
-                        children: [
-                          Chip(
-                            label: Text(
-                              user.role.toUpperCase(),
-                              style: const TextStyle(fontSize: 10),
+                  child: StreamBuilder<List<UserModel>>(
+                    stream: _authViewModel.getAllUsers(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFFe53e3e),
                             ),
-                            backgroundColor: user.role == 'admin' ? Colors.red : Colors.blue,
-                            labelStyle: const TextStyle(color: Colors.white),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            user.isEmailVerified ? Icons.verified : Icons.warning,
-                            color: user.isEmailVerified ? Colors.green : Colors.orange,
-                            size: 16,
+                        );
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.people_outline,
+                                size: 80,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No hay usuarios registrados',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ],
+                        );
+                      }
+                      final users = snapshot.data!;
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: users.length,
+                        itemBuilder: (context, index) {
+                          final user = users[index];
+                          return _buildUserCard(user, index);
+                        },
+                      );
+                    },
                   ),
-                  trailing: PopupMenuButton(
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          _showAddUserDialog();
+        },
+        backgroundColor: const Color(0xFFe53e3e),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Agregar Usuario',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserCard(UserModel user, int index) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              user.role == 'admin' ? Colors.red.shade50 : Colors.blue.shade50,
+            ],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  // Avatar
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: user.role == 'admin'
+                          ? Colors.red.shade100
+                          : Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      user.role == 'admin'
+                          ? Icons.admin_panel_settings
+                          : Icons.person,
+                      color: user.role == 'admin'
+                          ? Colors.red.shade600
+                          : Colors.blue.shade600,
+                      size: 24,
+                    ),
+                  ),
+
+                  const SizedBox(width: 16),
+
+                  // User Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.displayName ?? 'Sin nombre',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.email,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: user.role == 'admin'
+                                    ? Colors.red
+                                    : Colors.blue,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                user.role.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              user.isEmailVerified
+                                  ? Icons.verified
+                                  : Icons.warning,
+                              color: user.isEmailVerified
+                                  ? Colors.green
+                                  : Colors.orange,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              user.isEmailVerified ? 'Verificado' : 'Pendiente',
+                              style: TextStyle(
+                                color: user.isEmailVerified
+                                    ? Colors.green
+                                    : Colors.orange,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Actions Menu
+                  PopupMenuButton(
+                    icon: Icon(Icons.more_vert, color: Colors.grey.shade600),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: ListTile(
-                          leading: Icon(Icons.edit),
-                          title: Text('Editar'),
+                      PopupMenuItem(
+                        value: 'view',
+                        child: Row(
+                          children: [
+                            Icon(Icons.visibility, color: Colors.blue.shade600),
+                            const SizedBox(width: 12),
+                            const Text('Ver detalles'),
+                          ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: Colors.orange.shade600),
+                            const SizedBox(width: 12),
+                            const Text('Editar'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
                         value: 'delete',
-                        child: ListTile(
-                          leading: Icon(Icons.delete, color: Colors.red),
-                          title: Text('Eliminar'),
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red.shade600),
+                            const SizedBox(width: 12),
+                            const Text('Eliminar'),
+                          ],
                         ),
                       ),
                     ],
                     onSelected: (value) {
-                      if (value == 'edit') {
-                        _showEditUserDialog(user, index);
-                      } else if (value == 'delete') {
-                        _showDeleteConfirmation(user, index);
+                      switch (value) {
+                        case 'view':
+                          _showUserDetails(user);
+                          break;
+                        case 'edit':
+                          _showEditUserDialog(user, index);
+                          break;
+                        case 'delete':
+                          _showDeleteConfirmation(user, index);
+                          break;
                       }
                     },
                   ),
-                  onTap: () {
-                    _showUserDetails(user);
-                  },
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddUserDialog();
-        },
-        child: const Icon(Icons.add),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -167,7 +368,10 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                 decoration: const InputDecoration(labelText: 'Rol'),
                 items: const [
                   DropdownMenuItem(value: 'usuario', child: Text('Usuario')),
-                  DropdownMenuItem(value: 'admin', child: Text('Administrador')),
+                  DropdownMenuItem(
+                    value: 'admin',
+                    child: Text('Administrador'),
+                  ),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -187,7 +391,9 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                 try {
                   final updatedUser = user.copyWith(
                     displayName: nameController.text,
-                    phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
+                    phoneNumber: phoneController.text.isEmpty
+                        ? null
+                        : phoneController.text,
                     role: selectedRole,
                   );
                   await _authViewModel.updateUser(updatedUser);
@@ -196,9 +402,9 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                     const SnackBar(content: Text('Usuario actualizado')),
                   );
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
                 }
               },
               child: const Text('Guardar'),
@@ -231,9 +437,9 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                   const SnackBar(content: Text('Usuario eliminado')),
                 );
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -281,7 +487,10 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                 decoration: const InputDecoration(labelText: 'Rol'),
                 items: const [
                   DropdownMenuItem(value: 'usuario', child: Text('Usuario')),
-                  DropdownMenuItem(value: 'admin', child: Text('Administrador')),
+                  DropdownMenuItem(
+                    value: 'admin',
+                    child: Text('Administrador'),
+                  ),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -313,7 +522,9 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                     );
                     // Si el rol seleccionado es diferente al por defecto, actualizarlo
                     if (userModel != null && userModel.role != selectedRole) {
-                      final updatedUser = userModel.copyWith(role: selectedRole);
+                      final updatedUser = userModel.copyWith(
+                        role: selectedRole,
+                      );
                       await _authViewModel.updateUser(updatedUser);
                     }
                     Navigator.pop(context);
@@ -321,9 +532,9 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                       const SnackBar(content: Text('Usuario agregado')),
                     );
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               },
